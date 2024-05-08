@@ -909,6 +909,11 @@ class hopscotch_hash : private Hash, private KeyEqual, private GrowthPolicy {
     return try_emplace_impl(k, std::forward<Args>(args)...);
   }
 
+  template <class K, class... Args>
+  std::pair<iterator, bool> try_emplace(K&& k, Args&&... args) {
+    return try_emplace_impl(std::forward<K>(k), std::forward<Args>(args)...);
+  }
+
   template <class... Args>
   std::pair<iterator, bool> try_emplace(key_type&& k, Args&&... args) {
     return try_emplace_impl(std::move(k), std::forward<Args>(args)...);

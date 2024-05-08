@@ -406,6 +406,40 @@ BOOST_AUTO_TEST_CASE(test_try_emplace_2) {
   }
 }
 
+namespace {
+  struct IntKey {
+    IntKey(std::int64_t n) : k(n) { ++IntKey::constructed; }
+    operator std::int64_t() const { return k; }
+    std::int64_t k;
+    static int constructed;
+  };
+  int IntKey::constructed = 0;
+}
+BOOST_AUTO_TEST_CASE(test_try_emplace_transparent) {
+  tsl::hopscotch_map<IntKey, move_only_test, std::hash<std::int64_t>, std::equal_to<>> map;
+  tsl::hopscotch_map<IntKey, move_only_test, std::hash<std::int64_t>, std::equal_to<>>::iterator it;
+  bool inserted;
+
+  std::tie(it, inserted) = map.try_emplace(10, 1);
+  BOOST_CHECK_EQUAL(it->first, 10);
+  BOOST_CHECK_EQUAL(it->second, move_only_test(1));
+  BOOST_CHECK(inserted);
+  BOOST_CHECK_EQUAL(IntKey::constructed, 1);
+
+  std::tie(it, inserted) = map.try_emplace(10, 3);
+  BOOST_CHECK_EQUAL(it->first, 10);
+  BOOST_CHECK_EQUAL(it->second, move_only_test(1));
+  BOOST_CHECK(!inserted);
+  BOOST_CHECK_EQUAL(IntKey::constructed, 1);
+
+  tsl::hopscotch_map<IntKey, std::int64_t, std::hash<std::int64_t>, std::equal_to<>> map2;
+  IntKey::constructed = 0;
+  map2[10] = 1;
+  BOOST_CHECK_EQUAL(IntKey::constructed, 1);
+  map2[10] = 20;
+  BOOST_CHECK_EQUAL(IntKey::constructed, 1);
+}
+
 BOOST_AUTO_TEST_CASE(test_try_emplace_hint) {
   tsl::hopscotch_map<std::int64_t, move_only_test> map(0);
 
