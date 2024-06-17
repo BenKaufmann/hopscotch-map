@@ -122,45 +122,49 @@ BOOST_AUTO_TEST_CASE(test_insert_pointer) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_insert_transparent, HSet,
                               heterogeneous_test_types) {
+  using key_t = heterogeneous_test::key_proxy;
   HSet set;
   typename HSet::iterator it;
   bool inserted;
-  int initial = heterogeneous_test::constructed();
-  std::tie(it, inserted) = set.insert(1);
+  int keys = 0;
+  auto key1 = key_t(1, &keys);
+  std::tie(it, inserted) = set.insert(key1);
   BOOST_CHECK_EQUAL(inserted, true);
   BOOST_CHECK_EQUAL(set.size(), 1);
   BOOST_CHECK_EQUAL(*it, 1);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), initial + 1);
-  std::tie(it, inserted) = set.insert(1);
+  BOOST_CHECK_EQUAL(keys, 1);
+  std::tie(it, inserted) = set.insert(key1);
   BOOST_CHECK_EQUAL(inserted, false);
   BOOST_CHECK_EQUAL(set.size(), 1);
   BOOST_CHECK_EQUAL(*it, 1);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), initial + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
-  std::tie(it, inserted) = set.insert(2);
+  std::tie(it, inserted) = set.insert(key_t(2, &keys));
   BOOST_CHECK_EQUAL(inserted, true);
   BOOST_CHECK_EQUAL(set.size(), 2);
   BOOST_CHECK_EQUAL(*it, 2);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), initial + 2);
+  BOOST_CHECK_EQUAL(keys, 2);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_insert_transparent_hint, HSet,
                               heterogeneous_test_types) {
+  using key_t = heterogeneous_test::key_proxy;
   HSet set;
+  int keys = 0;
+  auto key1 = key_t(1, &keys);
   typename HSet::iterator it, otherIt;
-  int initial = heterogeneous_test::constructed();
-  it = set.insert(set.end(), 1);
+  it = set.insert(set.end(), key1);
   BOOST_CHECK_EQUAL(set.size(), 1);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), initial + 1);
-  otherIt = set.insert(set.end(), 1);
+  BOOST_CHECK_EQUAL(keys, 1);
+  otherIt = set.insert(set.end(), key1);
   BOOST_CHECK_EQUAL(set.size(), 1);
   BOOST_CHECK(it == otherIt);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), initial + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
-  otherIt = set.insert(set.cbegin(), 2);
+  otherIt = set.insert(set.cbegin(), key_t(2, &keys));
   BOOST_CHECK_EQUAL(set.size(), 2);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), initial + 2);
   BOOST_CHECK_EQUAL(*otherIt, 2);
+  BOOST_CHECK_EQUAL(keys, 2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

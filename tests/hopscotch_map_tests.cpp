@@ -416,21 +416,22 @@ BOOST_AUTO_TEST_CASE(test_try_emplace_2) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_try_emplace_transparent, MapT,
                               heterogeneous_test_types) {
+  using key_t = heterogeneous_test::key_proxy;
   MapT map;
   typename MapT::iterator it;
   bool inserted;
-  int init = heterogeneous_test::constructed();
-  std::tie(it, inserted) = map.try_emplace(1, 1);
+  int keys = 0;
+  std::tie(it, inserted) = map.try_emplace(key_t(1, &keys), 1);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 1);
   BOOST_CHECK(inserted);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
-  std::tie(it, inserted) = map.try_emplace(1, 3);
+  std::tie(it, inserted) = map.try_emplace(key_t(1, &keys), 3);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 1);
   BOOST_CHECK(!inserted);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_try_emplace_hint) {
@@ -454,31 +455,32 @@ BOOST_AUTO_TEST_CASE(test_try_emplace_hint) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_try_emplace_transparent_hint, MapT,
                               heterogeneous_test_types) {
+  using key_t = heterogeneous_test::key_proxy;
   MapT map;
-  int init = heterogeneous_test::constructed();
+  int keys = 0;
   // end() hint, new value
-  auto it = map.try_emplace(map.end(), 1, 1);
+  auto it = map.try_emplace(map.end(), key_t(1, &keys), 1);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 1);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
   // Good hint
-  it = map.try_emplace(map.find(1), 1, 3);
+  it = map.try_emplace(map.find(1), key_t(1, &keys), 3);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 1);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
   // Wrong hint, existing value
-  it = map.try_emplace(map.end(), 1, 99);
+  it = map.try_emplace(map.end(), key_t(1, &keys), 99);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 1);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
   // Wrong hint, new value
-  it = map.try_emplace(map.find(1), 2, 22);
+  it = map.try_emplace(map.find(1), key_t(2, &keys), 22);
   BOOST_CHECK_EQUAL(it->first, 2);
   BOOST_CHECK_EQUAL(it->second, 22);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 2);
+  BOOST_CHECK_EQUAL(keys, 2);
 }
 
 template <typename M, typename... Args>
@@ -542,22 +544,22 @@ BOOST_AUTO_TEST_CASE(test_insert_or_assign) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_insert_or_assign_transparent, MapT,
                               heterogeneous_test_types) {
+  using key_t = heterogeneous_test::key_proxy;
   MapT map;
   typename MapT::iterator it;
   bool inserted;
-  int init = heterogeneous_test::constructed();
-
-  std::tie(it, inserted) = map.insert_or_assign(1, 1);
+  int keys = 0;
+  std::tie(it, inserted) = map.insert_or_assign(key_t(1, &keys), 1);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 1);
   BOOST_CHECK(inserted);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
-  std::tie(it, inserted) = map.insert_or_assign(1, 3);
+  std::tie(it, inserted) = map.insert_or_assign(key_t(1, &keys), 3);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 3);
   BOOST_CHECK(!inserted);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_insert_or_assign_hint) {
@@ -581,31 +583,32 @@ BOOST_AUTO_TEST_CASE(test_insert_or_assign_hint) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_insert_or_assign_transparent_hint, MapT,
                               heterogeneous_test_types) {
+  using key_t = heterogeneous_test::key_proxy;
   MapT map;
-  int init = heterogeneous_test::constructed();
+  int keys = 0;
   // end() hint, new value
-  auto it = map.insert_or_assign(map.end(), 1, 1);
+  auto it = map.insert_or_assign(map.end(), key_t(1, &keys), 1);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 1);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
   // Good hint
-  it = map.insert_or_assign(map.find(1), 1, 3);
+  it = map.insert_or_assign(map.find(1), key_t(1, &keys), 3);
   BOOST_CHECK_EQUAL(it->first, 1);
   BOOST_CHECK_EQUAL(it->second, 3);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  BOOST_CHECK_EQUAL(keys, 1);
 
   // Bad hint, new value
-  it = map.insert_or_assign(map.find(1), 2, 3);
+  it = map.insert_or_assign(map.find(1), key_t(2, &keys), 3);
   BOOST_CHECK_EQUAL(it->first, 2);
   BOOST_CHECK_EQUAL(it->second, 3);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 2);
+  BOOST_CHECK_EQUAL(keys, 2);
 
   // Bad hint, existing value
-  it = map.insert_or_assign(map.find(1), 2, 15);
+  it = map.insert_or_assign(map.find(1), key_t(2, &keys), 15);
   BOOST_CHECK_EQUAL(it->first, 2);
   BOOST_CHECK_EQUAL(it->second, 15);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 2);
+  BOOST_CHECK_EQUAL(keys, 2);
 }
 
 /**
@@ -1208,13 +1211,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_access_operator, HMap,
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_access_operator_transparent, MapT,
                               heterogeneous_test_types) {
+  using key_t = heterogeneous_test::key_proxy;
   MapT map;
-  int init = heterogeneous_test::constructed();
-  BOOST_CHECK_EQUAL(map[1], 0);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
-  map[1] = 22;
-  BOOST_CHECK_EQUAL(map[1], 22);
-  BOOST_CHECK_EQUAL(heterogeneous_test::constructed(), init + 1);
+  int keys = 0;
+  auto key1 = key_t(1, &keys);
+  BOOST_CHECK_EQUAL(keys, 0);
+  BOOST_CHECK_EQUAL(map[key1], 0);
+  BOOST_CHECK_EQUAL(keys, 1);
+  map[key1] = 22;
+  BOOST_CHECK_EQUAL(map[key1], 22);
+  BOOST_CHECK_EQUAL(keys, 1);
 }
 
 /**

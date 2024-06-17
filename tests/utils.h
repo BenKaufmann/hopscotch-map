@@ -213,24 +213,26 @@ class heterogeneous_test {
   struct less : std::less<int> {
     using is_transparent = void;
   };
-  explicit heterogeneous_test(int i) : m_value(i) {
-    heterogeneous_test::constructed_add(1);
+
+  struct key_proxy {
+    key_proxy(int i, int* cnt) : value(i), counter(cnt) {}
+    operator int() const noexcept { return value; }
+    int value = 0;
+    int* counter = nullptr;
+  };
+
+  explicit heterogeneous_test(const key_proxy& p) : m_value(p.value) {
+    if (p.counter) ++*p.counter;
   }
 
-  operator int() const { return m_value; }
-
-  static int constructed_add(int i) {
-    static int inst = 0;
-    inst += i;
-    return inst;
-  }
-  static int constructed() { return constructed_add(0); }
+  operator int() const noexcept { return m_value; }
 
  private:
   int m_value;
 };
-static_assert(std::is_constructible<heterogeneous_test, int>::value,
-              "should be constructible from int");
+static_assert(std::is_constructible<heterogeneous_test,
+                                    heterogeneous_test::key_proxy>::value,
+              "should be constructible from proxy");
 
 namespace std {
 template <>
